@@ -33,7 +33,7 @@ export default function Navbar({ currentPage, setPage, cartCount, onCartOpen }: 
           <button onClick={() => navigate('home')} className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0"
               style={{ boxShadow: '0 0 14px rgba(245,204,0,0.3)', border: '1px solid rgba(245,204,0,0.2)' }}>
-              <img src="/images/vikram-logo.svg" alt="Vikram Crackers"
+              <img src="/images/vikram-logo.png" alt="Vikram Crackers"
                 className="w-full h-full object-contain" style={{ background: '#2A1200' }} />
             </div>
             <div className="flex flex-col leading-none">

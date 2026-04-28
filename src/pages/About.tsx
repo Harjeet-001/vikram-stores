@@ -4,13 +4,14 @@ import { Heart, Award, MapPin, Phone, Mail, MessageCircle } from 'lucide-react';
 export default function About() {
   const stats = [
     { label: 'Years in Business', value: '15+' },
-    { label: 'Happy Customers',   value: '50,000+' },
+    { label: 'Happy Customers', value: '50,000+' },
     { label: 'Product Varieties', value: '100+' },
-    { label: 'Based In',          value: 'Sivakasi' },
+    { label: 'Based In', value: 'Sivakasi' },
   ];
 
   return (
-    <div className="min-h-screen pt-24 pb-16 px-4">
+    // Changed the min-h-screen div background to the new pale yellow color
+    <div className="min-h-screen pt-24 pb-16 px-4" style={{ backgroundColor: '#ffed99' }}>
       <div className="max-w-4xl mx-auto">
 
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-14">
@@ -19,12 +20,15 @@ export default function About() {
             About Us
           </span>
           <div className="flex flex-col items-center gap-4 mb-8">
+            {/* Logo area - Removed the background circle, shadow, and outer glow */}
             <div className="relative">
-              <div className="absolute inset-0 rounded-full"
-                style={{ background: 'rgba(245,204,0,0.2)', filter: 'blur(24px)', transform: 'scale(1.5)' }} />
-              <div className="relative w-28 h-28 rounded-full bg-white p-2"
-                style={{ boxShadow: '0 8px 32px rgba(184,130,0,0.22)' }}>
-                <img src="/images/vikram-logo.svg" alt="Vikram Crackers" className="w-full h-full object-contain" />
+              {/* Removed Outer Glow div */}
+              {/* <div className="absolute inset-0 rounded-full"
+                style={{ background: 'rgba(245,204,0,0.2)', filter: 'blur(24px)', transform: 'scale(1.5)' }} /> */}
+              
+              {/* Modified Logo div to remove the white circle background and shadow */}
+              <div className="relative w-28 h-28 flex items-center justify-center p-2">
+                <img src="/images/vikram-logo.png" alt="Vikram Crackers" className="w-full h-full object-contain" />
               </div>
             </div>
             <div>
@@ -75,9 +79,9 @@ export default function About() {
         {/* Values */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-14">
           {[
-            { icon: Heart,  title: 'Customer First',  desc: 'Every decision puts our customers and their safety at the heart of it.' },
-            { icon: Award,  title: 'Quality Assured', desc: 'All products are BIS certified, sourced directly from Sivakasi manufacturers.' },
-            { icon: MapPin, title: 'Local Roots',     desc: 'Proudly based in Sivakasi — the fireworks capital of India — since 2009.' },
+            { icon: Heart, title: 'Customer First', desc: 'Every decision puts our customers and their safety at the heart of it.' },
+            { icon: Award, title: 'Quality Assured', desc: 'All products are BIS certified, sourced directly from Sivakasi manufacturers.' },
+            { icon: MapPin, title: 'Local Roots', desc: 'Proudly based in Sivakasi — the fireworks capital of India — since 2009.' },
           ].map((v, i) => (
             <motion.div key={v.title} initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }} transition={{ delay: i * 0.1 }}
@@ -122,7 +126,7 @@ export default function About() {
                 { icon: Phone, val: '94425-73184' },
                 { icon: Phone, val: '98422-19323' },
                 { icon: Phone, val: '94865-31318' },
-                { icon: Mail,  val: 'ayngarankandasamy@gmail.com' },
+                { icon: Mail, val: 'vikramcrackersdm@gmail.com' },
               ].map((c, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <c.icon size={14} style={{ color: '#7A5000', flexShrink: 0 }} />
@@ -138,7 +142,7 @@ export default function About() {
               style={{ background: 'rgba(184,130,0,0.1)', border: '1px solid rgba(184,130,0,0.25)', color: '#5C3A00' }}>
               <Phone size={15} /> Call Now
             </a>
-            <a href="https://wa.me/919442573184?text=Hi%20Vikram%20Crackers!%20I%20want%20to%20place%20an%20order." target="_blank" rel="noreferrer"
+            <a href="https://wa.me/919150903031?text=Hi%20Vikram%20Crackers!%20I%20want%20to%20place%20an%20order." target="_blank" rel="noreferrer"
               className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all hover:scale-[1.02]"
               style={{ background: 'linear-gradient(135deg,#25D366,#128C7E)', color: '#fff', boxShadow: '0 3px 14px rgba(37,211,102,0.25)' }}>
               <MessageCircle size={15} /> WhatsApp Chat

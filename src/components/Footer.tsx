@@ -19,7 +19,7 @@ export default function Footer({ setPage }: FooterProps) {
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0"
                 style={{ border: '1px solid rgba(245,204,0,0.25)', background: '#2A1200', boxShadow: '0 0 14px rgba(245,204,0,0.2)' }}>
-                <img src="/images/vikram-logo.svg" alt="Vikram Crackers" className="w-full h-full object-contain p-0.5" />
+                <img src="/images/vikram-logo.png" alt="Vikram Crackers" className="w-full h-full object-contain p-0.5" />
               </div>
               <div className="flex flex-col leading-none">
                 <span className="font-black text-lg" style={{ fontFamily: "'Playfair Display',serif", color: '#F5CC00' }}>Vikram</span>
