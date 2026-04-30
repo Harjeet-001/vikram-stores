@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ShoppingBag, MessageCircle, Trash2 } from 'lucide-react';
+import { X, ShoppingBag, MessageCircle, Trash2, AlertCircle } from 'lucide-react';
 import type { Product } from '../data/products';
 
 interface CartItem { product: Product; quantity: number; }
@@ -9,7 +9,25 @@ interface CartDrawerProps {
 }
 
 export default function CartDrawer({ open, onClose, items, onRemoveItem, onWhatsApp }: CartDrawerProps) {
-  const grandTotal = items.reduce((s, i) => s + i.product.price * i.quantity, 0);
+  // Calculate Subtotal
+  const subtotal = items.reduce((s, i) => s + i.product.price * i.quantity, 0);
+  
+  // Calculate 70% Discount (Price becomes 30% of original)
+  const discountAmount = subtotal * 0.70;
+  const finalTotal = subtotal - discountAmount;
+  
+  // Minimum Order Threshold
+  const MIN_ORDER = 3000;
+  const isEligible = finalTotal >= MIN_ORDER;
+
+  const handleCheckout = () => {
+    if (!isEligible) {
+      alert(`Minimum order value after discount must be ₹${MIN_ORDER}. Current total: ₹${finalTotal.toFixed(2)}`);
+      return;
+    }
+    onWhatsApp();
+  };
+
   return (
     <AnimatePresence>
       {open && (
@@ -76,27 +94,50 @@ export default function CartDrawer({ open, onClose, items, onRemoveItem, onWhats
             {items.length > 0 && (
               <div className="p-5 flex flex-col gap-4"
                 style={{ borderTop: '1px solid rgba(245,204,0,0.1)', background: 'rgba(245,204,0,0.04)' }}>
-                <div className="rounded-2xl p-4 flex flex-col gap-1.5"
+                
+                {/* Summary Box */}
+                <div className="rounded-2xl p-4 flex flex-col gap-2"
                   style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(245,204,0,0.12)' }}>
-                  <p className="text-xs font-bold mb-1" style={{ color: 'rgba(245,220,160,0.5)' }}>Order Summary</p>
-                  {items.map(({ product, quantity }) => (
-                    <div key={product.id} className="flex justify-between text-sm">
-                      <span className="truncate flex-1 mr-2" style={{ color: 'rgba(245,220,160,0.65)' }}>{product.name}</span>
-                      <span style={{ color: 'rgba(245,220,160,0.55)', whiteSpace: 'nowrap' }}>{quantity} × ₹{product.price}</span>
-                    </div>
-                  ))}
-                  <div className="flex justify-between font-black text-base pt-2 mt-1"
-                    style={{ borderTop: '1px solid rgba(245,204,0,0.15)', color: '#F5CC00' }}>
-                    <span>Grand Total</span>
-                    <span>₹{grandTotal.toFixed(2)}</span>
+                  
+                  <div className="flex justify-between text-sm" style={{ color: 'rgba(245,220,160,0.6)' }}>
+                    <span>Subtotal</span>
+                    <span>₹{subtotal.toFixed(2)}</span>
                   </div>
+                  
+                  <div className="flex justify-between text-sm" style={{ color: '#4ADE80' }}>
+                    <span>Special Discount (70% OFF)</span>
+                    <span>- ₹{discountAmount.toFixed(2)}</span>
+                  </div>
+
+                  <div className="flex justify-between font-black text-lg pt-2 mt-1"
+                    style={{ borderTop: '1px solid rgba(245,204,0,0.15)', color: '#F5CC00' }}>
+                    <span>Final Total</span>
+                    <span>₹{finalTotal.toFixed(2)}</span>
+                  </div>
+
+                  {/* Order Minimum Warning */}
+                  {!isEligible && (
+                    <div className="flex items-center gap-2 mt-2 p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
+                      <AlertCircle size={14} />
+                      <span>Add ₹{(MIN_ORDER - finalTotal).toFixed(2)} more to place order (Min: ₹3000)</span>
+                    </div>
+                  )}
                 </div>
-                <button onClick={onWhatsApp}
-                  className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-black text-base transition-all hover:scale-[1.02]"
-                  style={{ background: 'linear-gradient(135deg,#25D366,#128C7E)', color: '#fff', boxShadow: '0 4px 24px rgba(37,211,102,0.3)' }}>
+
+                <button 
+                  onClick={handleCheckout}
+                  disabled={!isEligible}
+                  className={`flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-black text-base transition-all ${isEligible ? 'hover:scale-[1.02] cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
+                  style={{ 
+                    background: isEligible ? 'linear-gradient(135deg,#25D366,#128C7E)' : '#333', 
+                    color: '#fff', 
+                    boxShadow: isEligible ? '0 4px 24px rgba(37,211,102,0.3)' : 'none' 
+                  }}>
                   <MessageCircle size={20} /> Confirm Order via WhatsApp
                 </button>
-                <p className="text-center text-xs" style={{ color: 'rgba(245,220,160,0.4)' }}>You'll be redirected to WhatsApp to confirm</p>
+                <p className="text-center text-xs" style={{ color: 'rgba(245,220,160,0.4)' }}>
+                  {!isEligible ? `Minimum order after discount is ₹${MIN_ORDER}` : "You'll be redirected to WhatsApp to confirm"}
+                </p>
               </div>
             )}
           </motion.div>

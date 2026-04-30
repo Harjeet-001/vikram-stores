@@ -37,22 +37,34 @@ export default function App() {
   const handleWhatsApp = () => {
     if (cartItems.length === 0) return;
 
-    // Minimum purchase validation
-    if (grandTotal < MIN_PURCHASE) {
-      alert(`⚠️ Minimum Order Required: ₹${MIN_PURCHASE}\n\nYour current total is ₹${grandTotal.toFixed(2)}. Please add items worth ₹${(MIN_PURCHASE - grandTotal).toFixed(2)} more to proceed.`);
+    // Calculate Discounted Amounts (70% OFF = 30% Payable)
+    const discountAmount = grandTotal * 0.70;
+    const finalAmount = grandTotal - discountAmount;
+
+    // Minimum purchase validation based on FINAL DISCOUNTED AMOUNT
+    if (finalAmount < MIN_PURCHASE) {
+      alert(`⚠️ Minimum Order Required: ₹${MIN_PURCHASE} (after discount)\n\nYour final total after 70% discount is ₹${finalAmount.toFixed(2)}. Please add more items to proceed.`);
       return;
     }
 
     const lines = cartItems.map(i =>
       `- ${i.product.name}: ${i.quantity} x ₹${i.product.price.toFixed(2)} = ₹${(i.product.price * i.quantity).toFixed(2)}`
     );
+
+    // Formatted WhatsApp Message
     const message =
       `🎆 *Order from Vikram Crackers*%0A%0A` +
       lines.map(l => encodeURIComponent(l)).join('%0A') +
-      `%0A%0A*Total Amount: ₹${grandTotal.toFixed(2)}*%0A%0APlease confirm my order. Thank you!`;
+      `%0A%0A` +
+      `--------------------------%0A` +
+      `*Total Amount:* ₹${grandTotal.toFixed(2)}%0A` +
+      `*Special Discount (70%):* -₹${discountAmount.toFixed(2)}%0A` +
+      `*Final Payable Amount: ₹${finalAmount.toFixed(2)}*%0A` +
+      `--------------------------%0A%0A` +
+      `Please confirm my order. Thank you!`;
     
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
-    setCartOpen(false); // Close drawer only after successful validation
+    setCartOpen(false); 
   };
 
   const navigate = (p: string) => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); };

@@ -246,15 +246,29 @@ export default function Catalog({ cart, onAdd, onRemove, onSet, onCartOpen }: Ca
                 backdropFilter: 'blur(12px)',
               }}>
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-                  style={{ background: 'rgba(245,204,0,0.12)', border: '1px solid rgba(245,204,0,0.2)' }}>
-                  <ShoppingCart size={17} style={{ color: '#F5CC00' }} />
-                </div>
-                <div>
-                  <p className="text-xs" style={{ color: 'rgba(245,204,0,0.55)' }}>{totalItems} item{totalItems !== 1 ? 's' : ''} in cart</p>
-                  <p className="text-lg font-black" style={{ color: '#F5CC00' }}>₹{grandTotal.toFixed(2)}</p>
-                </div>
-              </div>
+  <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+    style={{ background: 'rgba(245,204,0,0.12)', border: '1px solid rgba(245,204,0,0.2)' }}>
+    <ShoppingCart size={17} style={{ color: '#F5CC00' }} />
+  </div>
+  <div>
+    <p className="text-xs" style={{ color: 'rgba(245,204,0,0.55)' }}>
+      {totalItems} item{totalItems !== 1 ? 's' : ''} in cart
+    </p>
+    <div className="flex items-baseline gap-2">
+      {/* 70% Discounted Price (30% of total) */}
+      <p className="text-xl font-black" style={{ color: '#F5CC00' }}>
+        ₹{(grandTotal * 0.3).toFixed(2)}
+      </p>
+      {/* Original Price Struck Through */}
+      <p className="text-sm line-through opacity-40 font-bold" style={{ color: '#F5CC00' }}>
+        ₹{grandTotal.toFixed(2)}
+      </p>
+      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 border border-green-500/30">
+        70% OFF
+      </span>
+    </div>
+  </div>
+</div>
               <div className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm"
                 style={{ background: 'linear-gradient(135deg,#8B5E00,#D4A800)', color: '#FFF8DC', border: '1px solid rgba(245,204,0,0.3)' }}>
                 View Cart →
