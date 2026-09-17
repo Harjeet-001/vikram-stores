@@ -12,8 +12,8 @@ export default function CartDrawer({ open, onClose, items, onRemoveItem, onWhats
   // Calculate Subtotal
   const subtotal = items.reduce((s, i) => s + i.product.price * i.quantity, 0);
   
-  // Calculate 70% Discount (Price becomes 30% of original)
-  const discountAmount = subtotal * 0.70;
+  // Calculate 75% Discount (Price becomes 30% of original)
+  const discountAmount = subtotal * 0.75;
   const finalTotal = subtotal - discountAmount;
   
   // Minimum Order Threshold
@@ -105,7 +105,7 @@ export default function CartDrawer({ open, onClose, items, onRemoveItem, onWhats
                   </div>
                   
                   <div className="flex justify-between text-sm" style={{ color: '#4ADE80' }}>
-                    <span>Special Discount (70% OFF)</span>
+                    <span>Special Discount (70%+5% OFF)</span>
                     <span>- ₹{discountAmount.toFixed(2)}</span>
                   </div>
 

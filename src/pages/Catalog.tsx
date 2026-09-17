@@ -257,14 +257,14 @@ export default function Catalog({ cart, onAdd, onRemove, onSet, onCartOpen }: Ca
     <div className="flex items-baseline gap-2">
       {/* 70% Discounted Price (30% of total) */}
       <p className="text-xl font-black" style={{ color: '#F5CC00' }}>
-        ₹{(grandTotal * 0.3).toFixed(2)}
+        ₹{(grandTotal * 0.25).toFixed(2)}
       </p>
       {/* Original Price Struck Through */}
       <p className="text-sm line-through opacity-40 font-bold" style={{ color: '#F5CC00' }}>
         ₹{grandTotal.toFixed(2)}
       </p>
       <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 border border-green-500/30">
-        70% OFF
+        70%+5% OFF
       </span>
     </div>
   </div>

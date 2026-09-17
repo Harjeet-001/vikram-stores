@@ -130,7 +130,7 @@ export default function Home({ setPage }: HomeProps) {
             className="flex flex-wrap justify-center gap-5">
             
             {/* Added an extra phone number to make it look nicer */}
-            {['94425-73185'].map(n => (
+            {['91509-03031'].map(n => (
               <a key={n} href={`tel:+91${n.replace(/-/g,'')}`}
                 className="flex items-center gap-1.5 text-sm font-medium hover:opacity-80 transition-opacity"
                 style={{ color: 'rgba(139,94,0,0.55)' }}>

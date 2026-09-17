@@ -38,12 +38,12 @@ export default function App() {
     if (cartItems.length === 0) return;
 
     // Calculate Discounted Amounts (70% OFF = 30% Payable)
-    const discountAmount = grandTotal * 0.70;
+    const discountAmount = grandTotal * 0.75;
     const finalAmount = grandTotal - discountAmount;
 
     // Minimum purchase validation based on FINAL DISCOUNTED AMOUNT
     if (finalAmount < MIN_PURCHASE) {
-      alert(`⚠️ Minimum Order Required: ₹${MIN_PURCHASE} (after discount)\n\nYour final total after 70% discount is ₹${finalAmount.toFixed(2)}. Please add more items to proceed.`);
+      alert(`⚠️ Minimum Order Required: ₹${MIN_PURCHASE} (after discount)\n\nYour final total after 75% discount is ₹${finalAmount.toFixed(2)}. Please add more items to proceed.`);
       return;
     }
 
@@ -58,7 +58,7 @@ export default function App() {
       `%0A%0A` +
       `--------------------------%0A` +
       `*Total Amount:* ₹${grandTotal.toFixed(2)}%0A` +
-      `*Special Discount (70%):* -₹${discountAmount.toFixed(2)}%0A` +
+      `*Special Discount (70%+5%):* -₹${discountAmount.toFixed(2)}%0A` +
       `*Final Payable Amount: ₹${finalAmount.toFixed(2)}*%0A` +
       `--------------------------%0A%0A` +
       `Please confirm my order. Thank you!`;
