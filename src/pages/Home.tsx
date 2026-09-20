@@ -60,10 +60,9 @@ export default function Home({ setPage }: HomeProps) {
             <Sparkles size={13} /> Diwali 2026 Collection is Live!
           </motion.div>
 
-          {/* 75% OFF Banner Badge */}
-<motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+         <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-black mb-6 shadow-lg"
-  style={{ background: 'linear-gradient(135deg, rgba(245,204,0,0.2), rgba(255,100,0,0.2))', border: '1px solid rgba(245,204,0,0.4)', color: '#F5CC00' }}>
+  style={{ background: 'linear-gradient(135deg, rgba(184,130,0,0.35), rgba(212,148,0,0.3))', border: '1px solid rgba(184,130,0,0.5)', color: '#8B5E00' }}>
   <Sparkles size={16} /> 🔥 Flat 75% OFF (70% + 5%) on All 2026 Crackers!
 </motion.div>
 

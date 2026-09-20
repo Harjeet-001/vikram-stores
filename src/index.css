@@ -71,3 +71,14 @@ input[type=number]::-webkit-outer-spin-button { opacity: 1; }
   25%      { opacity: 0.8; transform: scale(0.9) translateY(1px); }
   75%      { opacity: 0.9; transform: scale(1.1) translateY(-1px); }
 }
+/* Force LeadBot chat input text color to black so it's fully visible */
+input, textarea {
+  color: #000000 !important;
+}
+
+/* Specifically target LeadBot input fields if needed */
+[data-leadbot-widget] input, 
+.leadbot-container input,
+#leadbot input {
+  color: #000000 !important;
+}
