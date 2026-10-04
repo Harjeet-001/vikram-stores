@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShoppingBag, MessageCircle, Trash2, AlertCircle } from 'lucide-react';
 import type { Product } from '../data/products';
+import { comboContents } from '../data/combos';
 
 interface CartItem { product: Product; quantity: number; }
 interface CartDrawerProps {
@@ -9,10 +10,28 @@ interface CartDrawerProps {
 }
 
 export default function CartDrawer({ open, onClose, items, onRemoveItem, onWhatsApp }: CartDrawerProps) {
-  // Calculate Subtotal
-  const subtotal = items.reduce((s, i) => s + i.product.price * i.quantity, 0);
+  // Check if any combo is active in the cart
+  const has5000Combo = items.some(i => i.product.id === 'combo-5000' && i.quantity > 0);
+  const has8000Combo = items.some(i => i.product.id === 'combo-8000' && i.quantity > 0);
+  const has3000Combo = items.some(i => i.product.id === 'combo-3000' && i.quantity > 0);
+
+  // Calculate Raw Subtotal from items
+  const rawSubtotal = items.reduce((s, i) => {
+    if (comboContents[i.product.id]) return s; // Skip header items if present
+    return s + i.product.price * i.quantity;
+  }, 0);
+
+  // Apply target overrides for exact combo prices (Final total needs to equal combo price, meaning subtotal * 0.25 = combo price -> subtotal = combo price / 0.25)
+  let subtotal = rawSubtotal;
+  if (has3000Combo) {
+    subtotal = 3008 / 0.25; // Target Final Total = ₹3,008.00
+  } else if (has5000Combo) {
+    subtotal = 19996; // Target Final Total = ₹4,999.00
+  } else if (has8000Combo) {
+    subtotal = 7999 / 0.25; // Target Final Total = ₹7,999.00
+  }
   
-  // Calculate 75% Discount (Price becomes 30% of original)
+  // Calculate 75% Discount (Price becomes 25% of original)
   const discountAmount = subtotal * 0.75;
   const finalTotal = subtotal - discountAmount;
   
@@ -54,7 +73,7 @@ export default function CartDrawer({ open, onClose, items, onRemoveItem, onWhats
                 {items.length > 0 && (
                   <span className="px-2 py-0.5 rounded-full text-xs font-bold"
                     style={{ background: 'rgba(245,204,0,0.15)', color: '#F5CC00' }}>
-                    {items.reduce((s, i) => s + i.quantity, 0)} items
+                    {items.reduce((s, i) => comboContents[i.product.id] ? s : s + i.quantity, 0)} items
                   </span>
                 )}
               </div>
@@ -71,7 +90,7 @@ export default function CartDrawer({ open, onClose, items, onRemoveItem, onWhats
                   <ShoppingBag size={52} style={{ color: 'rgba(245,204,0,0.15)' }} />
                   <p className="text-center text-sm" style={{ color: 'rgba(245,220,160,0.5)' }}>Cart is empty.<br />Add items from the catalog.</p>
                 </div>
-              ) : items.map(({ product, quantity }) => (
+              ) : items.filter(i => !comboContents[i.product.id]).map(({ product, quantity }) => (
                 <motion.div key={product.id} layout initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
                   className="flex items-center gap-3 p-3 rounded-xl"
                   style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(245,204,0,0.1)' }}>

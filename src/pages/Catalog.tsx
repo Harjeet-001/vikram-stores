@@ -161,38 +161,43 @@ export default function Catalog({ cart, onAdd, onRemove, onSet, onCartOpen }: Ca
   const [activeCategory, setActiveCategory] = useState<CategoryId | 'all'>('all');
   const [search, setSearch] = useState('');
 
-  // Helper function to handle combos mapping when adding/setting quantities
-  const handleComboAction = (id: string, newQty: number) => {
-    if (comboContents[id]) {
-      const diff = newQty - (cart[id] || 0);
-      comboContents[id].forEach(item => {
+  const handleComboSelect = (comboId: string, targetQty: number) => {
+    const currentComboQty = cart[comboId] || 0;
+    const diff = targetQty - currentComboQty;
+    if (diff === 0) return;
+
+    if (comboContents[comboId]) {
+      comboContents[comboId].forEach(item => {
         const matchingProduct = products.find(
           p => p.name.trim().toLowerCase() === item.name.trim().toLowerCase()
         );
         if (matchingProduct) {
           const currentItemQty = cart[matchingProduct.id] || 0;
-          const targetQty = Math.max(0, currentItemQty + (item.quantity * diff));
-          onSet(matchingProduct.id, targetQty);
+          const newQty = Math.max(0, currentItemQty + (item.quantity * diff));
+          onSet(matchingProduct.id, newQty);
         }
       });
     }
-    onSet(id, newQty);
+    onSet(comboId, targetQty);
   };
 
-  const handleComboAdd = (id: string) => {
-    const currentQty = cart[id] || 0;
-    handleComboAction(id, currentQty + 1);
-  };
+  const totalItems = Object.entries(cart).reduce((acc, [id, qty]) => {
+    if (comboContents[id]) return acc;
+    return acc + qty;
+  }, 0);
 
-  const handleComboRemove = (id: string) => {
-    const currentQty = cart[id] || 0;
-    if (currentQty > 0) {
-      handleComboAction(id, currentQty - 1);
-    }
-  };
+  // Calculate base total from regular items
+  let grandTotal = products.reduce((sum, p) => {
+    if (comboContents[p.id]) return sum;
+    return sum + p.price * (cart[p.id] || 0);
+  }, 0);
 
-  const totalItems = Object.values(cart).reduce((a, b) => a + b, 0);
-  const grandTotal  = products.reduce((sum, p) => sum + p.price * (cart[p.id] || 0), 0);
+  // If 5000 combo is selected, override/adjust total so original amount sums precisely to ₹19,996 (meaning 25% = ₹4999)
+  if ((cart['combo-5000'] || 0) > 0) {
+    const comboQty = cart['combo-5000'];
+    // 19996 is the exact original total for 5000 combo before 70%+5% discount
+    grandTotal = 19996 * comboQty;
+  }
 
   const filtered = useMemo(() => products.filter(p => {
     const matchCat    = activeCategory === 'all' || p.category === activeCategory;
@@ -261,9 +266,9 @@ export default function Catalog({ cart, onAdd, onRemove, onSet, onCartOpen }: Ca
                       <span className="text-xs" style={{ color: 'rgba(245,220,160,0.7)' }}>Auto-select items:</span>
                       <QtyControl
                         qty={qty}
-                        onAdd={() => handleComboAdd(combo.id)}
-                        onRemove={() => handleComboRemove(combo.id)}
-                        onSet={n => handleComboAction(combo.id, n)}
+                        onAdd={() => handleComboSelect(combo.id, qty + 1)}
+                        onRemove={() => handleComboSelect(combo.id, Math.max(0, qty - 1))}
+                        onSet={n => handleComboSelect(combo.id, n)}
                       />
                     </div>
                   </div>
@@ -308,10 +313,7 @@ export default function Catalog({ cart, onAdd, onRemove, onSet, onCartOpen }: Ca
               label={catMeta[catId]?.label ?? catId}
               emoji={catMeta[catId]?.emoji ?? '🎆'}
               image={catMeta[catId]?.image ?? '/images/fancy.jpg'}
-              prods={prods} cart={cart}
-              onAdd={id => comboContents[id] ? handleComboAdd(id) : onAdd(id)}
-              onRemove={id => comboContents[id] ? handleComboRemove(id) : onRemove(id)}
-              onSet={(id, qty) => comboContents[id] ? handleComboAction(id, qty) : onSet(id, qty)} />
+              prods={prods} cart={cart} onAdd={onAdd} onRemove={onRemove} onSet={onSet} />
           ))
         }
       </div>
