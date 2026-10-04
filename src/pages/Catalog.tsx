@@ -192,11 +192,13 @@ export default function Catalog({ cart, onAdd, onRemove, onSet, onCartOpen }: Ca
     return sum + p.price * (cart[p.id] || 0);
   }, 0);
 
-  // If 5000 combo is selected, override/adjust total so original amount sums precisely to ₹19,996 (meaning 25% = ₹4999)
-  if ((cart['combo-5000'] || 0) > 0) {
-    const comboQty = cart['combo-5000'];
-    // 19996 is the exact original total for 5000 combo before 70%+5% discount
-    grandTotal = 19996 * comboQty;
+  // Exact target overrides for combos (Subtotal calculated so 25% = final target price)
+  if ((cart['combo-3000'] || 0) > 0) {
+    grandTotal = 12032 * cart['combo-3000']; // Target final ₹3,008.00
+  } else if ((cart['combo-5000'] || 0) > 0) {
+    grandTotal = 19996 * cart['combo-5000']; // Target final ₹4,999.00
+  } else if ((cart['combo-8000'] || 0) > 0) {
+    grandTotal = 31996 * cart['combo-8000']; // Target final ₹7,999.00
   }
 
   const filtered = useMemo(() => products.filter(p => {
@@ -342,7 +344,7 @@ export default function Catalog({ cart, onAdd, onRemove, onSet, onCartOpen }: Ca
                     {totalItems} item{totalItems !== 1 ? 's' : ''} in cart
                   </p>
                   <div className="flex items-baseline gap-2">
-                    {/* 70% Discounted Price (30% of total) */}
+                    {/* 70% Discounted Price (25% of total) */}
                     <p className="text-xl font-black" style={{ color: '#F5CC00' }}>
                       ₹{(grandTotal * 0.25).toFixed(2)}
                     </p>

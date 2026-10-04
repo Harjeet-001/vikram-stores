@@ -10,10 +10,10 @@ interface CartDrawerProps {
 }
 
 export default function CartDrawer({ open, onClose, items, onRemoveItem, onWhatsApp }: CartDrawerProps) {
-  // Check if any combo is active in the cart
+  // Check which combo is active in the cart
+  const has3000Combo = items.some(i => i.product.id === 'combo-3000' && i.quantity > 0);
   const has5000Combo = items.some(i => i.product.id === 'combo-5000' && i.quantity > 0);
   const has8000Combo = items.some(i => i.product.id === 'combo-8000' && i.quantity > 0);
-  const has3000Combo = items.some(i => i.product.id === 'combo-3000' && i.quantity > 0);
 
   // Calculate Raw Subtotal from items
   const rawSubtotal = items.reduce((s, i) => {
@@ -21,14 +21,14 @@ export default function CartDrawer({ open, onClose, items, onRemoveItem, onWhats
     return s + i.product.price * i.quantity;
   }, 0);
 
-  // Apply target overrides for exact combo prices (Final total needs to equal combo price, meaning subtotal * 0.25 = combo price -> subtotal = combo price / 0.25)
+  // Apply exact subtotal overrides so that (subtotal * 0.25) equals the exact final payable target:
   let subtotal = rawSubtotal;
   if (has3000Combo) {
-    subtotal = 3008 / 0.25; // Target Final Total = ₹3,008.00
+    subtotal = 12032; // Target Final Total = ₹3,008.00
   } else if (has5000Combo) {
     subtotal = 19996; // Target Final Total = ₹4,999.00
   } else if (has8000Combo) {
-    subtotal = 7999 / 0.25; // Target Final Total = ₹7,999.00
+    subtotal = 31996; // Target Final Total = ₹7,999.00
   }
   
   // Calculate 75% Discount (Price becomes 25% of original)

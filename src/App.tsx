@@ -9,6 +9,7 @@ import Catalog from './pages/Catalog';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import { products } from './data/products';
+import { comboContents } from './data/combos';
 
 const WHATSAPP_NUMBER = '919150903031';
 const MIN_PURCHASE = 3000;
@@ -32,12 +33,31 @@ export default function App() {
 
   const cartItems  = products.filter(p => (cart[p.id] || 0) > 0).map(p => ({ product: p, quantity: cart[p.id] }));
   const cartCount  = cartItems.reduce((s, i) => s + i.quantity, 0);
-  const grandTotal = cartItems.reduce((s, i) => s + i.product.price * i.quantity, 0);
+  
+  // Check active combos
+  const has3000Combo = (cart['combo-3000'] || 0) > 0;
+  const has5000Combo = (cart['combo-5000'] || 0) > 0;
+  const has8000Combo = (cart['combo-8000'] || 0) > 0;
+
+  // Calculate base total from regular items (skipping header combo items)
+  let grandTotal = cartItems.reduce((s, i) => {
+    if (comboContents[i.product.id]) return s;
+    return s + i.product.price * i.quantity;
+  }, 0);
+
+  // Apply exact subtotal overrides for combos
+  if (has3000Combo) {
+    grandTotal = 12032 * cart['combo-3000']; // Target final ₹3,008.00
+  } else if (has5000Combo) {
+    grandTotal = 19996 * cart['combo-5000']; // Target final ₹4,999.00
+  } else if (has8000Combo) {
+    grandTotal = 31996 * cart['combo-8000']; // Target final ₹7,999.00
+  }
 
   const handleWhatsApp = () => {
     if (cartItems.length === 0) return;
 
-    // Calculate Discounted Amounts (70% OFF = 30% Payable)
+    // Calculate Discounted Amounts (75% OFF = 25% Payable)
     const discountAmount = grandTotal * 0.75;
     const finalAmount = grandTotal - discountAmount;
 
@@ -47,7 +67,7 @@ export default function App() {
       return;
     }
 
-    const lines = cartItems.map(i =>
+    const lines = cartItems.filter(i => !comboContents[i.product.id]).map(i =>
       `- ${i.product.name}: ${i.quantity} x ₹${i.product.price.toFixed(2)} = ₹${(i.product.price * i.quantity).toFixed(2)}`
     );
 
