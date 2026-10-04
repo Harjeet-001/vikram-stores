@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, ShoppingCart, Plus, Minus, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, ShoppingCart, Plus, Minus, CheckCircle, ChevronDown, ChevronUp, Package } from 'lucide-react';
 import { products, categories, type CategoryId } from '../data/products';
+import { comboContents } from '../data/combos';
 
 interface CatalogProps {
   cart: Record<string, number>;
@@ -160,6 +161,36 @@ export default function Catalog({ cart, onAdd, onRemove, onSet, onCartOpen }: Ca
   const [activeCategory, setActiveCategory] = useState<CategoryId | 'all'>('all');
   const [search, setSearch] = useState('');
 
+  // Helper function to handle combos mapping when adding/setting quantities
+  const handleComboAction = (id: string, newQty: number) => {
+    if (comboContents[id]) {
+      const diff = newQty - (cart[id] || 0);
+      comboContents[id].forEach(item => {
+        const matchingProduct = products.find(
+          p => p.name.trim().toLowerCase() === item.name.trim().toLowerCase()
+        );
+        if (matchingProduct) {
+          const currentItemQty = cart[matchingProduct.id] || 0;
+          const targetQty = Math.max(0, currentItemQty + (item.quantity * diff));
+          onSet(matchingProduct.id, targetQty);
+        }
+      });
+    }
+    onSet(id, newQty);
+  };
+
+  const handleComboAdd = (id: string) => {
+    const currentQty = cart[id] || 0;
+    handleComboAction(id, currentQty + 1);
+  };
+
+  const handleComboRemove = (id: string) => {
+    const currentQty = cart[id] || 0;
+    if (currentQty > 0) {
+      handleComboAction(id, currentQty - 1);
+    }
+  };
+
   const totalItems = Object.values(cart).reduce((a, b) => a + b, 0);
   const grandTotal  = products.reduce((sum, p) => sum + p.price * (cart[p.id] || 0), 0);
 
@@ -181,6 +212,8 @@ export default function Catalog({ cart, onAdd, onRemove, onSet, onCartOpen }: Ca
     return m;
   }, []);
 
+  const comboProducts = products.filter(p => p.category === 'combos');
+
   return (
     <div className="min-h-screen pt-20 pb-36 px-3 sm:px-4">
       <div className="max-w-5xl mx-auto">
@@ -190,6 +223,55 @@ export default function Catalog({ cart, onAdd, onRemove, onSet, onCartOpen }: Ca
           </h1>
           <p className="text-sm" style={{ color: 'rgba(245,220,160,0.5)' }}>Select items, set quantity, then confirm order via WhatsApp</p>
         </motion.div>
+
+        {/* 🌟 MEGA COMBOS QUICK-SELECT BANNER AT THE TOP */}
+        {comboProducts.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8 p-5 rounded-3xl"
+            style={{
+              background: 'linear-gradient(135deg, rgba(60,30,0,0.85), rgba(30,15,5,0.95))',
+              border: '1.5px solid rgba(245,204,0,0.3)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            }}>
+            <div className="flex items-center gap-2 mb-4">
+              <Package size={20} style={{ color: '#F5CC00' }} />
+              <h2 className="text-lg font-black" style={{ color: '#F5CC00', fontFamily: "'Playfair Display',serif" }}>
+                Special Mega Combos (Auto-Select All Items)
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {comboProducts.map(combo => {
+                const qty = cart[combo.id] || 0;
+                return (
+                  <div key={combo.id} className="p-4 rounded-2xl flex flex-col justify-between transition-all hover:scale-[1.02]"
+                    style={{
+                      background: qty > 0 ? 'rgba(245,204,0,0.12)' : 'rgba(255,255,255,0.05)',
+                      border: qty > 0 ? '1.5px solid #F5CC00' : '1px solid rgba(245,204,0,0.2)',
+                    }}>
+                    <div>
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="font-bold text-base" style={{ color: '#FFF8DC' }}>{combo.name}</span>
+                        {combo.tag && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-bold"
+                            style={{ background: 'rgba(245,204,0,0.2)', color: '#F5CC00' }}>{combo.tag}</span>
+                        )}
+                      </div>
+                      <p className="text-xl font-black mb-3" style={{ color: '#F5CC00' }}>₹{combo.price}</p>
+                    </div>
+                    <div className="flex items-center justify-between pt-2" style={{ borderTop: '1px solid rgba(245,204,0,0.1)' }}>
+                      <span className="text-xs" style={{ color: 'rgba(245,220,160,0.7)' }}>Auto-select items:</span>
+                      <QtyControl
+                        qty={qty}
+                        onAdd={() => handleComboAdd(combo.id)}
+                        onRemove={() => handleComboRemove(combo.id)}
+                        onSet={n => handleComboAction(combo.id, n)}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
 
         {/* Search */}
         <div className="relative max-w-lg mx-auto mb-5">
@@ -226,7 +308,10 @@ export default function Catalog({ cart, onAdd, onRemove, onSet, onCartOpen }: Ca
               label={catMeta[catId]?.label ?? catId}
               emoji={catMeta[catId]?.emoji ?? '🎆'}
               image={catMeta[catId]?.image ?? '/images/fancy.jpg'}
-              prods={prods} cart={cart} onAdd={onAdd} onRemove={onRemove} onSet={onSet} />
+              prods={prods} cart={cart}
+              onAdd={id => comboContents[id] ? handleComboAdd(id) : onAdd(id)}
+              onRemove={id => comboContents[id] ? handleComboRemove(id) : onRemove(id)}
+              onSet={(id, qty) => comboContents[id] ? handleComboAction(id, qty) : onSet(id, qty)} />
           ))
         }
       </div>
@@ -246,29 +331,29 @@ export default function Catalog({ cart, onAdd, onRemove, onSet, onCartOpen }: Ca
                 backdropFilter: 'blur(12px)',
               }}>
               <div className="flex items-center gap-3">
-  <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-    style={{ background: 'rgba(245,204,0,0.12)', border: '1px solid rgba(245,204,0,0.2)' }}>
-    <ShoppingCart size={17} style={{ color: '#F5CC00' }} />
-  </div>
-  <div>
-    <p className="text-xs" style={{ color: 'rgba(245,204,0,0.55)' }}>
-      {totalItems} item{totalItems !== 1 ? 's' : ''} in cart
-    </p>
-    <div className="flex items-baseline gap-2">
-      {/* 70% Discounted Price (30% of total) */}
-      <p className="text-xl font-black" style={{ color: '#F5CC00' }}>
-        ₹{(grandTotal * 0.25).toFixed(2)}
-      </p>
-      {/* Original Price Struck Through */}
-      <p className="text-sm line-through opacity-40 font-bold" style={{ color: '#F5CC00' }}>
-        ₹{grandTotal.toFixed(2)}
-      </p>
-      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 border border-green-500/30">
-        70%+5% OFF
-      </span>
-    </div>
-  </div>
-</div>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+                  style={{ background: 'rgba(245,204,0,0.12)', border: '1px solid rgba(245,204,0,0.2)' }}>
+                  <ShoppingCart size={17} style={{ color: '#F5CC00' }} />
+                </div>
+                <div>
+                  <p className="text-xs" style={{ color: 'rgba(245,204,0,0.55)' }}>
+                    {totalItems} item{totalItems !== 1 ? 's' : ''} in cart
+                  </p>
+                  <div className="flex items-baseline gap-2">
+                    {/* 70% Discounted Price (30% of total) */}
+                    <p className="text-xl font-black" style={{ color: '#F5CC00' }}>
+                      ₹{(grandTotal * 0.25).toFixed(2)}
+                    </p>
+                    {/* Original Price Struck Through */}
+                    <p className="text-sm line-through opacity-40 font-bold" style={{ color: '#F5CC00' }}>
+                      ₹{grandTotal.toFixed(2)}
+                    </p>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 border border-green-500/30">
+                      70%+5% OFF
+                    </span>
+                  </div>
+                </div>
+              </div>
               <div className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm"
                 style={{ background: 'linear-gradient(135deg,#8B5E00,#D4A800)', color: '#FFF8DC', border: '1px solid rgba(245,204,0,0.3)' }}>
                 View Cart →
