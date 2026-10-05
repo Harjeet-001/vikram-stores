@@ -34,24 +34,22 @@ export default function App() {
   const cartItems  = products.filter(p => (cart[p.id] || 0) > 0).map(p => ({ product: p, quantity: cart[p.id] }));
   const cartCount  = cartItems.reduce((s, i) => s + i.quantity, 0);
   
-  // Check active combos
-  const has3000Combo = (cart['combo-3000'] || 0) > 0;
-  const has5000Combo = (cart['combo-5000'] || 0) > 0;
-  const has8000Combo = (cart['combo-8000'] || 0) > 0;
+  // Support multiple combos simultaneously
+  const c3kQty = cart['combo-3000'] || 0;
+  const c5kQty = cart['combo-5000'] || 0;
+  const c8kQty = cart['combo-8000'] || 0;
 
-  // Calculate base total from regular items (skipping header combo items)
-  let grandTotal = cartItems.reduce((s, i) => {
-    if (comboContents[i.product.id]) return s;
-    return s + i.product.price * i.quantity;
-  }, 0);
-
-  // Apply exact subtotal overrides for combos
-  if (has3000Combo) {
-    grandTotal = 12032 * cart['combo-3000']; // Target final ₹3,008.00
-  } else if (has5000Combo) {
-    grandTotal = 19996 * cart['combo-5000']; // Target final ₹4,999.00
-  } else if (has8000Combo) {
-    grandTotal = 31996 * cart['combo-8000']; // Target final ₹7,999.00
+  // Calculate Subtotal precisely based on active combos or loose items
+  let grandTotal = 0;
+  if (c3kQty > 0 || c5kQty > 0 || c8kQty > 0) {
+    if (c3kQty > 0) grandTotal += 12032 * c3kQty;
+    if (c5kQty > 0) grandTotal += 19996 * c5kQty;
+    if (c8kQty > 0) grandTotal += 31996 * c8kQty;
+  } else {
+    grandTotal = cartItems.reduce((s, i) => {
+      if (comboContents[i.product.id]) return s;
+      return s + i.product.price * i.quantity;
+    }, 0);
   }
 
   const handleWhatsApp = () => {

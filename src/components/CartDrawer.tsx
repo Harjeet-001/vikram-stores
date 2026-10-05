@@ -10,25 +10,22 @@ interface CartDrawerProps {
 }
 
 export default function CartDrawer({ open, onClose, items, onRemoveItem, onWhatsApp }: CartDrawerProps) {
-  // Check which combo is active in the cart
-  const has3000Combo = items.some(i => i.product.id === 'combo-3000' && i.quantity > 0);
-  const has5000Combo = items.some(i => i.product.id === 'combo-5000' && i.quantity > 0);
-  const has8000Combo = items.some(i => i.product.id === 'combo-8000' && i.quantity > 0);
+  // Support multiple combos simultaneously
+  const c3kQty = items.find(i => i.product.id === 'combo-3000')?.quantity || 0;
+  const c5kQty = items.find(i => i.product.id === 'combo-5000')?.quantity || 0;
+  const c8kQty = items.find(i => i.product.id === 'combo-8000')?.quantity || 0;
 
-  // Calculate Raw Subtotal from items
-  const rawSubtotal = items.reduce((s, i) => {
-    if (comboContents[i.product.id]) return s; // Skip header items if present
-    return s + i.product.price * i.quantity;
-  }, 0);
-
-  // Apply exact subtotal overrides so that (subtotal * 0.25) equals the exact final payable target:
-  let subtotal = rawSubtotal;
-  if (has3000Combo) {
-    subtotal = 12032; // Target Final Total = ₹3,008.00
-  } else if (has5000Combo) {
-    subtotal = 19996; // Target Final Total = ₹4,999.00
-  } else if (has8000Combo) {
-    subtotal = 31996; // Target Final Total = ₹7,999.00
+  // Calculate Subtotal precisely based on active combos or loose items
+  let subtotal = 0;
+  if (c3kQty > 0 || c5kQty > 0 || c8kQty > 0) {
+    if (c3kQty > 0) subtotal += 12032 * c3kQty;
+    if (c5kQty > 0) subtotal += 19996 * c5kQty;
+    if (c8kQty > 0) subtotal += 31996 * c8kQty;
+  } else {
+    subtotal = items.reduce((s, i) => {
+      if (comboContents[i.product.id]) return s; // Skip header items if present
+      return s + i.product.price * i.quantity;
+    }, 0);
   }
   
   // Calculate 75% Discount (Price becomes 25% of original)
