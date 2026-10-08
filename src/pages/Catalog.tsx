@@ -20,16 +20,17 @@ const TAG_COLORS: Record<string, { bg: string; text: string }> = {
   New:        { bg: 'rgba(74,222,128,0.15)', text: '#4ADE80' },
 };
 
-function QtyControl({ qty, onAdd, onRemove, onSet }: { qty: number; onAdd: () => void; onRemove: () => void; onSet: (n: number) => void }) {
+function QtyControl({ qty, minQty = 0, onAdd, onRemove, onSet }: { qty: number; minQty?: number; onAdd: () => void; onRemove: () => void; onSet: (n: number) => void }) {
+  const isAtMin = qty <= minQty;
   return (
     <div className="flex items-center gap-1">
-      <button onClick={onRemove} disabled={qty === 0}
+      <button onClick={onRemove} disabled={isAtMin}
         className="w-7 h-7 rounded-full flex items-center justify-center font-bold transition-all disabled:opacity-30"
-        style={{ background: qty > 0 ? 'rgba(245,204,0,0.12)' : 'rgba(255,255,255,0.05)', border: '1px solid rgba(245,204,0,0.25)', color: '#D4A800' }}>
+        style={{ background: !isAtMin ? 'rgba(245,204,0,0.12)' : 'rgba(255,255,255,0.05)', border: '1px solid rgba(245,204,0,0.25)', color: '#D4A800' }}>
         <Minus size={11} />
       </button>
-      <input type="number" min={0} max={999} value={qty}
-        onChange={e => { const v = parseInt(e.target.value); onSet(isNaN(v) || v < 0 ? 0 : v); }}
+      <input type="number" min={minQty} max={999} value={qty}
+        onChange={e => { const v = parseInt(e.target.value); onSet(isNaN(v) || v < minQty ? minQty : v); }}
         className="w-12 text-center text-sm font-bold rounded-lg h-7 outline-none"
         style={{ background: qty > 0 ? 'rgba(245,204,0,0.08)' : 'rgba(255,255,255,0.05)', border: '1px solid rgba(245,204,0,0.18)', color: '#F5E6C8' }} />
       <button onClick={onAdd}
@@ -41,9 +42,10 @@ function QtyControl({ qty, onAdd, onRemove, onSet }: { qty: number; onAdd: () =>
   );
 }
 
-function CategorySection({ label, emoji, image, prods, cart, onAdd, onRemove, onSet }: {
+function CategorySection({ label, emoji, image, prods, cart, c3kQty, c5kQty, c8kQty, onAdd, onRemove, onSet }: {
   catId: string; label: string; emoji: string; image: string;
   prods: typeof products; cart: Record<string, number>;
+  c3kQty: number; c5kQty: number; c8kQty: number;
   onAdd: (id: string) => void; onRemove: (id: string) => void; onSet: (id: string, qty: number) => void;
 }) {
   const [open, setOpen] = useState(true);
@@ -111,6 +113,22 @@ function CategorySection({ label, emoji, image, prods, cart, onAdd, onRemove, on
             {/* Rows */}
             {prods.map((p, idx) => {
               const qty = cart[p.id] || 0;
+              
+              // Calculate minimum allowed quantity based on active combos
+              let minAllowedQty = 0;
+              if (c3kQty > 0) {
+                const itemIn3k = comboContents['combo-3000']?.find(i => i.name.trim().toLowerCase() === p.name.trim().toLowerCase());
+                if (itemIn3k) minAllowedQty += itemIn3k.quantity * c3kQty;
+              }
+              if (c5kQty > 0) {
+                const itemIn5k = comboContents['combo-5000']?.find(i => i.name.trim().toLowerCase() === p.name.trim().toLowerCase());
+                if (itemIn5k) minAllowedQty += itemIn5k.quantity * c5kQty;
+              }
+              if (c8kQty > 0) {
+                const itemIn8k = comboContents['combo-8000']?.find(i => i.name.trim().toLowerCase() === p.name.trim().toLowerCase());
+                if (itemIn8k) minAllowedQty += itemIn8k.quantity * c8kQty;
+              }
+
               return (
                 <motion.div key={p.id} layout
                   className="grid items-center px-4 py-2.5 gap-x-2 transition-colors"
@@ -140,7 +158,7 @@ function CategorySection({ label, emoji, image, prods, cart, onAdd, onRemove, on
                     <span className="text-sm font-bold" style={{ color: '#D4A800' }}>{p.price.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-center">
-                    <QtyControl qty={qty} onAdd={() => onAdd(p.id)} onRemove={() => onRemove(p.id)} onSet={n => onSet(p.id, n)} />
+                    <QtyControl qty={qty} minQty={minAllowedQty} onAdd={() => onAdd(p.id)} onRemove={() => onRemove(p.id)} onSet={n => onSet(p.id, Math.max(minAllowedQty, n))} />
                   </div>
                   <div className="text-right">
                     <span className="text-sm font-bold" style={{ color: qty > 0 ? '#F5CC00' : 'rgba(245,204,0,0.2)' }}>
@@ -217,7 +235,6 @@ export default function Catalog({ cart, onAdd, onRemove, onSet, onCartOpen }: Ca
           if (itemIn8k) comboDefaultQty += itemIn8k.quantity * c8kQty;
         }
 
-        // Only add price for items added ON TOP of the combo (no subtraction below combo default)
         const diff = Math.max(0, currentQty - comboDefaultQty);
         if (diff > 0) {
           grandTotal += p.price * diff;
@@ -345,7 +362,7 @@ export default function Catalog({ cart, onAdd, onRemove, onSet, onCartOpen }: Ca
               label={catMeta[catId]?.label ?? catId}
               emoji={catMeta[catId]?.emoji ?? '🎆'}
               image={catMeta[catId]?.image ?? '/images/fancy.jpg'}
-              prods={prods} cart={cart} onAdd={onAdd} onRemove={onRemove} onSet={onSet} />
+              prods={prods} cart={cart} c3kQty={c3kQty} c5kQty={c5kQty} c8kQty={c8kQty} onAdd={onAdd} onRemove={onRemove} onSet={onSet} />
           ))
         }
       </div>
