@@ -39,12 +39,22 @@ export default function App() {
   const c5kQty = cart['combo-5000'] || 0;
   const c8kQty = cart['combo-8000'] || 0;
 
-  // Calculate Subtotal precisely based on active combos or loose items
   let grandTotal = 0;
   if (c3kQty > 0 || c5kQty > 0 || c8kQty > 0) {
     if (c3kQty > 0) grandTotal += 12032 * c3kQty;
     if (c5kQty > 0) grandTotal += 19996 * c5kQty;
     if (c8kQty > 0) grandTotal += 31996 * c8kQty;
+
+    const activeComboItemNames = new Set<string>();
+    if (c3kQty > 0 && comboContents['combo-3000']) comboContents['combo-3000'].forEach(i => activeComboItemNames.add(i.name.trim().toLowerCase()));
+    if (c5kQty > 0 && comboContents['combo-5000']) comboContents['combo-5000'].forEach(i => activeComboItemNames.add(i.name.trim().toLowerCase()));
+    if (c8kQty > 0 && comboContents['combo-8000']) comboContents['combo-8000'].forEach(i => activeComboItemNames.add(i.name.trim().toLowerCase()));
+
+    cartItems.forEach(i => {
+      if (!comboContents[i.product.id] && !activeComboItemNames.has(i.product.name.trim().toLowerCase())) {
+        grandTotal += i.product.price * i.quantity;
+      }
+    });
   } else {
     grandTotal = cartItems.reduce((s, i) => {
       if (comboContents[i.product.id]) return s;

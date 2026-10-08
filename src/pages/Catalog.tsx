@@ -186,20 +186,35 @@ export default function Catalog({ cart, onAdd, onRemove, onSet, onCartOpen }: Ca
     return acc + qty;
   }, 0);
 
-  // Calculate base total from regular items
-  let grandTotal = products.reduce((sum, p) => {
-    if (comboContents[p.id]) return sum;
-    return sum + p.price * (cart[p.id] || 0), 0;
-  }, 0);
-
-  // Add multiple combo totals dynamically based on their quantities
+  // Check active combos
   const c3kQty = cart['combo-3000'] || 0;
   const c5kQty = cart['combo-5000'] || 0;
   const c8kQty = cart['combo-8000'] || 0;
 
-  if (c3kQty > 0) grandTotal += 12032 * c3kQty;
-  if (c5kQty > 0) grandTotal += 19996 * c5kQty;
-  if (c8kQty > 0) grandTotal += 31996 * c8kQty;
+  // Calculate grandTotal correctly without double counting combo items
+  let grandTotal = 0;
+  if (c3kQty > 0 || c5kQty > 0 || c8kQty > 0) {
+    if (c3kQty > 0) grandTotal += 12032 * c3kQty;
+    if (c5kQty > 0) grandTotal += 19996 * c5kQty;
+    if (c8kQty > 0) grandTotal += 31996 * c8kQty;
+
+    // Add ONLY items that are NOT part of the active combos (extra loose items)
+    const activeComboItemNames = new Set<string>();
+    if (c3kQty > 0 && comboContents['combo-3000']) comboContents['combo-3000'].forEach(i => activeComboItemNames.add(i.name.trim().toLowerCase()));
+    if (c5kQty > 0 && comboContents['combo-5000']) comboContents['combo-5000'].forEach(i => activeComboItemNames.add(i.name.trim().toLowerCase()));
+    if (c8kQty > 0 && comboContents['combo-8000']) comboContents['combo-8000'].forEach(i => activeComboItemNames.add(i.name.trim().toLowerCase()));
+
+    products.forEach(p => {
+      if (!comboContents[p.id] && !activeComboItemNames.has(p.name.trim().toLowerCase())) {
+        grandTotal += p.price * (cart[p.id] || 0);
+      }
+    });
+  } else {
+    grandTotal = products.reduce((sum, p) => {
+      if (comboContents[p.id]) return sum;
+      return sum + p.price * (cart[p.id] || 0);
+    }, 0);
+  }
 
   const filtered = useMemo(() => products.filter(p => {
     const matchCat    = activeCategory === 'all' || p.category === activeCategory;
