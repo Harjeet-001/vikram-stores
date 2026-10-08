@@ -24,19 +24,28 @@ export default function CartDrawer({ open, onClose, items, onRemoveItem, onWhats
 
     items.forEach(i => {
       if (!comboContents[i.product.id] && i.product.category !== 'combos') {
-        const in3k = c3kQty > 0 ? (comboContents['combo-3000']?.find(item => item.name.trim().toLowerCase() === i.product.name.trim().toLowerCase())?.quantity || 0) * c3kQty : 0;
-        const in5k = c5kQty > 0 ? (comboContents['combo-5000']?.find(item => item.name.trim().toLowerCase() === i.product.name.trim().toLowerCase())?.quantity || 0) * c5kQty : 0;
-        const in8k = c8kQty > 0 ? (comboContents['combo-8000']?.find(item => item.name.trim().toLowerCase() === i.product.name.trim().toLowerCase())?.quantity || 0) * c8kQty : 0;
+        let comboDefaultQty = 0;
+        if (c3kQty > 0) {
+          const itemIn3k = comboContents['combo-3000']?.find(item => item.name.trim().toLowerCase() === i.product.name.trim().toLowerCase());
+          if (itemIn3k) comboDefaultQty += itemIn3k.quantity * c3kQty;
+        }
+        if (c5kQty > 0) {
+          const itemIn5k = comboContents['combo-5000']?.find(item => item.name.trim().toLowerCase() === i.product.name.trim().toLowerCase());
+          if (itemIn5k) comboDefaultQty += itemIn5k.quantity * c5kQty;
+        }
+        if (c8kQty > 0) {
+          const itemIn8k = comboContents['combo-8000']?.find(item => item.name.trim().toLowerCase() === i.product.name.trim().toLowerCase());
+          if (itemIn8k) comboDefaultQty += itemIn8k.quantity * c8kQty;
+        }
 
-        const baseComboQty = in3k + in5k + in8k;
-        if (i.quantity !== baseComboQty) {
-          subtotal = 0;
+        // Only add price for items added ON TOP of the combo (no subtraction below combo default)
+        const diff = Math.max(0, i.quantity - comboDefaultQty);
+        if (diff > 0) {
+          subtotal += i.product.price * diff;
         }
       }
     });
-  }
-
-  if (subtotal === 0) {
+  } else {
     subtotal = items.reduce((s, i) => {
       if (comboContents[i.product.id]) return s;
       return s + i.product.price * i.quantity;

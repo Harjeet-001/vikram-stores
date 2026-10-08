@@ -191,7 +191,6 @@ export default function Catalog({ cart, onAdd, onRemove, onSet, onCartOpen }: Ca
   const c5kQty = cart['combo-5000'] || 0;
   const c8kQty = cart['combo-8000'] || 0;
 
-  // If exact combo button is active and no items were manually changed away from standard, use flat package rate. Otherwise, sum items naturally.
   let grandTotal = 0;
   const hasCombo = c3kQty > 0 || c5kQty > 0 || c8kQty > 0;
 
@@ -200,23 +199,32 @@ export default function Catalog({ cart, onAdd, onRemove, onSet, onCartOpen }: Ca
     if (c5kQty > 0) grandTotal += 19996 * c5kQty;
     if (c8kQty > 0) grandTotal += 31996 * c8kQty;
 
-    products.forEach(p => {
+    const cartItemsList = products.filter(p => (cart[p.id] || 0) > 0);
+    cartItemsList.forEach(p => {
       if (!comboContents[p.id] && p.category !== 'combos') {
         const currentQty = cart[p.id] || 0;
-        const in3k = c3kQty > 0 ? (comboContents['combo-3000']?.find(i => i.name.trim().toLowerCase() === p.name.trim().toLowerCase())?.quantity || 0) * c3kQty : 0;
-        const in5k = c5kQty > 0 ? (comboContents['combo-5000']?.find(i => i.name.trim().toLowerCase() === p.name.trim().toLowerCase())?.quantity || 0) * c5kQty : 0;
-        const in8k = c8kQty > 0 ? (comboContents['combo-8000']?.find(i => i.name.trim().toLowerCase() === p.name.trim().toLowerCase())?.quantity || 0) * c8kQty : 0;
-        
-        const baseComboQty = in3k + in5k + in8k;
-        if (currentQty !== baseComboQty) {
-          // If user modified items, switch to pure item sum calculation for accuracy
-          grandTotal = 0;
+        let comboDefaultQty = 0;
+        if (c3kQty > 0) {
+          const itemIn3k = comboContents['combo-3000']?.find(item => item.name.trim().toLowerCase() === p.name.trim().toLowerCase());
+          if (itemIn3k) comboDefaultQty += itemIn3k.quantity * c3kQty;
+        }
+        if (c5kQty > 0) {
+          const itemIn5k = comboContents['combo-5000']?.find(item => item.name.trim().toLowerCase() === p.name.trim().toLowerCase());
+          if (itemIn5k) comboDefaultQty += itemIn5k.quantity * c5kQty;
+        }
+        if (c8kQty > 0) {
+          const itemIn8k = comboContents['combo-8000']?.find(item => item.name.trim().toLowerCase() === p.name.trim().toLowerCase());
+          if (itemIn8k) comboDefaultQty += itemIn8k.quantity * c8kQty;
+        }
+
+        // Only add price for items added ON TOP of the combo (no subtraction below combo default)
+        const diff = Math.max(0, currentQty - comboDefaultQty);
+        if (diff > 0) {
+          grandTotal += p.price * diff;
         }
       }
     });
-  }
-
-  if (grandTotal === 0) {
+  } else {
     grandTotal = products.reduce((sum, p) => {
       if (comboContents[p.id] || p.category === 'combos') return sum;
       return sum + p.price * (cart[p.id] || 0);
