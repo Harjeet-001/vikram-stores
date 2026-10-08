@@ -10,30 +10,35 @@ interface CartDrawerProps {
 }
 
 export default function CartDrawer({ open, onClose, items, onRemoveItem, onWhatsApp }: CartDrawerProps) {
-  // Support multiple combos simultaneously
   const c3kQty = items.find(i => i.product.id === 'combo-3000')?.quantity || 0;
   const c5kQty = items.find(i => i.product.id === 'combo-5000')?.quantity || 0;
   const c8kQty = items.find(i => i.product.id === 'combo-8000')?.quantity || 0;
 
   let subtotal = 0;
-  if (c3kQty > 0 || c5kQty > 0 || c8kQty > 0) {
+  const hasCombo = c3kQty > 0 || c5kQty > 0 || c8kQty > 0;
+
+  if (hasCombo) {
     if (c3kQty > 0) subtotal += 12032 * c3kQty;
     if (c5kQty > 0) subtotal += 19996 * c5kQty;
     if (c8kQty > 0) subtotal += 31996 * c8kQty;
 
-    const activeComboItemNames = new Set<string>();
-    if (c3kQty > 0 && comboContents['combo-3000']) comboContents['combo-3000'].forEach(i => activeComboItemNames.add(i.name.trim().toLowerCase()));
-    if (c5kQty > 0 && comboContents['combo-5000']) comboContents['combo-5000'].forEach(i => activeComboItemNames.add(i.name.trim().toLowerCase()));
-    if (c8kQty > 0 && comboContents['combo-8000']) comboContents['combo-8000'].forEach(i => activeComboItemNames.add(i.name.trim().toLowerCase()));
-
     items.forEach(i => {
-      if (!comboContents[i.product.id] && !activeComboItemNames.has(i.product.name.trim().toLowerCase())) {
-        subtotal += i.product.price * i.quantity;
+      if (!comboContents[i.product.id] && i.product.category !== 'combos') {
+        const in3k = c3kQty > 0 ? (comboContents['combo-3000']?.find(item => item.name.trim().toLowerCase() === i.product.name.trim().toLowerCase())?.quantity || 0) * c3kQty : 0;
+        const in5k = c5kQty > 0 ? (comboContents['combo-5000']?.find(item => item.name.trim().toLowerCase() === i.product.name.trim().toLowerCase())?.quantity || 0) * c5kQty : 0;
+        const in8k = c8kQty > 0 ? (comboContents['combo-8000']?.find(item => item.name.trim().toLowerCase() === i.product.name.trim().toLowerCase())?.quantity || 0) * c8kQty : 0;
+
+        const baseComboQty = in3k + in5k + in8k;
+        if (i.quantity !== baseComboQty) {
+          subtotal = 0;
+        }
       }
     });
-  } else {
+  }
+
+  if (subtotal === 0) {
     subtotal = items.reduce((s, i) => {
-      if (comboContents[i.product.id]) return s; // Skip combo headers
+      if (comboContents[i.product.id]) return s;
       return s + i.product.price * i.quantity;
     }, 0);
   }

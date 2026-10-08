@@ -34,28 +34,33 @@ export default function App() {
   const cartItems  = products.filter(p => (cart[p.id] || 0) > 0).map(p => ({ product: p, quantity: cart[p.id] }));
   const cartCount  = cartItems.reduce((s, i) => s + i.quantity, 0);
   
-  // Support multiple combos simultaneously
   const c3kQty = cart['combo-3000'] || 0;
   const c5kQty = cart['combo-5000'] || 0;
   const c8kQty = cart['combo-8000'] || 0;
 
   let grandTotal = 0;
-  if (c3kQty > 0 || c5kQty > 0 || c8kQty > 0) {
+  const hasCombo = c3kQty > 0 || c5kQty > 0 || c8kQty > 0;
+
+  if (hasCombo) {
     if (c3kQty > 0) grandTotal += 12032 * c3kQty;
     if (c5kQty > 0) grandTotal += 19996 * c5kQty;
     if (c8kQty > 0) grandTotal += 31996 * c8kQty;
 
-    const activeComboItemNames = new Set<string>();
-    if (c3kQty > 0 && comboContents['combo-3000']) comboContents['combo-3000'].forEach(i => activeComboItemNames.add(i.name.trim().toLowerCase()));
-    if (c5kQty > 0 && comboContents['combo-5000']) comboContents['combo-5000'].forEach(i => activeComboItemNames.add(i.name.trim().toLowerCase()));
-    if (c8kQty > 0 && comboContents['combo-8000']) comboContents['combo-8000'].forEach(i => activeComboItemNames.add(i.name.trim().toLowerCase()));
-
     cartItems.forEach(i => {
-      if (!comboContents[i.product.id] && !activeComboItemNames.has(i.product.name.trim().toLowerCase())) {
-        grandTotal += i.product.price * i.quantity;
+      if (!comboContents[i.product.id] && i.product.category !== 'combos') {
+        const in3k = c3kQty > 0 ? (comboContents['combo-3000']?.find(item => item.name.trim().toLowerCase() === i.product.name.trim().toLowerCase())?.quantity || 0) * c3kQty : 0;
+        const in5k = c5kQty > 0 ? (comboContents['combo-5000']?.find(item => item.name.trim().toLowerCase() === i.product.name.trim().toLowerCase())?.quantity || 0) * c5kQty : 0;
+        const in8k = c8kQty > 0 ? (comboContents['combo-8000']?.find(item => item.name.trim().toLowerCase() === i.product.name.trim().toLowerCase())?.quantity || 0) * c8kQty : 0;
+
+        const baseComboQty = in3k + in5k + in8k;
+        if (i.quantity !== baseComboQty) {
+          grandTotal = 0;
+        }
       }
     });
-  } else {
+  }
+
+  if (grandTotal === 0) {
     grandTotal = cartItems.reduce((s, i) => {
       if (comboContents[i.product.id]) return s;
       return s + i.product.price * i.quantity;
